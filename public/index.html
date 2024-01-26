@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WhatsApp Session Manager</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- add token form -->
+    <div id="tokenFormContainer">
+      <form id="tokenForm">
+        <input type="text" id="devToken" placeholder="Enter Developer Token" />
+        <button id="tokenSubmitBtn" type="submit">Connect</button>
+      </form>
+
+      <!-- <div
+        id="qrCodeView"
+        style="
+          display: none;
+          gap: 30px;
+          background-color: white;
+          padding: 30px;
+          border-radius: 5px;
+        "
+      >
+        <div style="flex: 1">
+          <div id="qrCode"></div>
+          <div
+            style="
+              background-color: yellow;
+              color: black;
+              padding: 10px;
+              width: 268px;
+              text-align: center;
+              margin-left: 15px;
+              border-radius: 5px;
+            "
+          >
+            <p>QR Code is obtained, please scan</p>
+          </div>
+        </div>
+        <div style="flex: 1; margin-top: 17px">
+          <p>Scan QR Code for Connect your Whatsapp</p>
+        </div>
+      </div> -->
+      <div id="messages" style="color: black; font-weight: 600"></div>
+    </div>
+
+    <!-- qr code screen -->
+    <div style="height: 100vh; display: none" id="qrCodeView">
+      <div style="flex: 2; background-color: #1d40bc">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+          "
+        >
+          <div id="qrCodeImgCont">
+            <span
+              style="
+                background-color: white;
+                color: #1d40bc;
+                padding: 10px 30px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 10px;
+                position: absolute;
+                top: -38px;
+                left: 50px;
+                right: 50px;
+                text-align: center;
+                border: 1px solid rgb(228, 226, 226);
+              "
+              >SCAN ME</span
+            >
+            <img
+              src="./asstes/images/whatsappLogo.png"
+              alt="whatsapp-logo"
+              style="
+                width: 100px;
+                height: 100px;
+                position: absolute;
+                top: -90px;
+                right: -90px;
+              "
+            />
+            <div id="qrCode"></div>
+          </div>
+
+          <div
+            style="
+              padding: 15px 0px;
+              width: 380px;
+              background-color: white;
+              margin-top: -50px;
+              text-align: center;
+              border-radius: 10px;
+              box-shadow: rgba(14, 30, 37, 0.92) 0px 2px 4px 0px,
+                rgba(14, 30, 37, 0.72) 0px 2px 16px 0px;
+            "
+          >
+            <span style="font-size: 21px; font-weight: bold">
+              Scan the QR Code to Connect <br />
+              Your WhatsApp
+            </span>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+          "
+        >
+          <p
+            style="
+              font-size: 30px;
+              font-weight: bold;
+              text-align: center;
+              margin-top: 35px;
+            "
+          >
+            Connect Your <br />
+            Personal WhatsApp to <br />
+            CRM Messaging
+          </p>
+          <img
+            src="./asstes/images/qrscan.png"
+            alt="qrscan-phone"
+            class="phoneQrScan"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- session ready screen -->
+    <div
+      id="sessionReady"
+      style="
+        min-height: 100vh;
+        background-color: #1d40bc;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
+          align-items: center;
+        "
+      >
+        <div
+          style="
+            background-color: white;
+            width: 500px;
+            border-radius: 10px;
+            padding: 40px;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px,
+              rgba(0, 0, 0, 0.23) 0px 3px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+          "
+        >
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <p style="color: black">
+              <span>Name:</span>
+              <span style="margin-left: 20px" id="name"></span>
+            </p>
+            <p style="color: black">
+              <span>Phone:</span>
+              <span style="margin-left: 15px" id="phone"></span>
+            </p>
+          </div>
+          <p style="color: #25d366">Your Session is Ready!</p>
+        </div>
+        <div>
+          <button id="logoutBtn">Disconnect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- loading spinner when devToken is in url -->
+    <div
+      id="loading"
+      style="
+        display: none;
+        height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #1d40bc;
+        gap: 15px;
+      "
+    >
+      <div class="spinner"></div>
+      <p style="margin-left: 10px; color: white; font-weight: 500">
+        Please wait...
+      </p>
+    </div>
+
+    <script>
+      const tokenFormContainer = document.getElementById("tokenFormContainer");
+      const form = document.getElementById("tokenForm");
+      const qrCodeContainer = document.getElementById("qrCode");
+      const qrCodeView = document.getElementById("qrCodeView");
+      const messagesContainer = document.getElementById("messages");
+      const sessionReady = document.getElementById("sessionReady");
+      const formSubmitBtn = document.getElementById("tokenSubmitBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const userName = document.getElementById("name");
+      const userPhone = document.getElementById("phone");
+      const userInfo = document.getElementById("userInfo");
+      const loading = document.getElementById("loading");
+      const ws = new WebSocket("ws://localhost:3000");
+      const devToken = null;
+
+      ws.onmessage = async function (event) {
+        const data = JSON.parse(event.data);
+        console.log("qrcodebbb", data.data);
+        switch (data.type) {
+          case "qr":
+            console.log("qrcode", data.data);
+            loading.style.display = "none";
+            tokenFormContainer.style.display = "none";
+            qrCodeView.style.display = "flex";
+            formSubmitBtn.innerHTML = "<p>Connect</p>";
+            form.style.display = "none";
+            qrCodeContainer.innerHTML = `<img id="qrCodeImg"  src="${data.data}" alt="QR-Code" >`;
+            break;
+          case "session_ready":
+          case "session_already_ready":
+            const devToken = localStorage.getItem("devToken");
+            await getUserProfile(devToken)
+              .then((responseData) => {
+                console.log("Response:", responseData);
+                const user = responseData?.data;
+                userName.innerHTML = user?.name;
+                userPhone.innerHTML = user?.phone;
+              })
+              .catch((error) => {
+                console.error("Request failed:", error);
+              });
+            loading.style.display = "none";
+            tokenFormContainer.style.display = "none";
+            qrCodeView.style.display = "none";
+            sessionReady.style.display = "flex";
+            formSubmitBtn.innerHTML = "<p>Start Session</p>";
+            form.style.display = "none";
+            qrCodeContainer.style.display = "none";
+
+            break;
+          case "logout":
+            tokenFormContainer.style.display = "flex";
+            form.style.display = "flex";
+            formSubmitBtn.innerHTML = "<p>Connect</p>";
+            qrCodeContainer.style.display = "none";
+            sessionReady.style.display = "none";
+            messagesContainer.innerHTML = ""; // Clear messages
+            break;
+
+          case "incoming_message":
+          case "outgoing_message":
+            // messagesContainer.innerHTML += `<p>${
+            //   data.type === "incoming_message" ? "Incoming" : "Outgoing"
+            // }: ${data.data}</p>`;
+            break;
+        }
+      };
+
+      function handleConnection(devToken) {
+        formSubmitBtn.innerHTML = "<p>Loading...</p>";
+        // Check if the WebSocket is open before sending a message
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(
+            JSON.stringify({
+              devToken,
+              action: "",
+            })
+          );
+          localStorage.setItem("devToken", devToken);
+        } else {
+          console.log("WebSocket connection is not in the OPEN state.");
+        }
+      }
+
+      // when user devToken found in url
+      function handleConnectionWithRetries(
+        devToken,
+        maxTries = 10,
+        delayBetweenTries = 1000
+      ) {
+        let tries = 0;
+        function attemptConnection() {
+          tries++;
+          console.log(
+            `Attempt ${tries}: WebSocket readyState: ${ws.readyState}`
+          );
+
+          // Check if the WebSocket is open before sending a message
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({
+                devToken,
+                action: "",
+              })
+            );
+            console.log("go to qr aur ready session");
+            localStorage.setItem("devToken", devToken);
+          } else {
+            console.log(
+              `Attempt ${tries}: WebSocket connection is not in the OPEN state.`
+            );
+
+            if (tries < maxTries) {
+              // Retry after a delay
+              setTimeout(attemptConnection, delayBetweenTries);
+            } else {
+              console.log(
+                `Maximum retries (${maxTries}) reached. Unable to establish a connection.`
+              );
+            }
+          }
+        }
+
+        // Start the initial connection attempt
+        attemptConnection();
+      }
+
+      form.onsubmit = function (event) {
+        event.preventDefault();
+
+        const devToken = document.getElementById("devToken").value;
+        if (devToken) {
+          handleConnection(devToken);
+        }
+      };
+
+      logoutBtn.addEventListener("click", () => {
+        const devToken = localStorage.getItem("devToken");
+        ws.send(
+          JSON.stringify({
+            devToken,
+            action: "logout",
+          })
+        );
+      });
+
+      async function getUserProfile(devToken) {
+        const url = "http://localhost:3000/api/userProfile";
+        const payload = {
+          devToken: devToken,
+        };
+
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            // Handle errors
+            console.error("Error:", error);
+            throw error; // Re-throw the error to propagate it to the caller
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        function extractTokenFromURL() {
+          var match = window.location.href.match(/[?&]token=([^&]*)/);
+          var token = match ? match[1] : null;
+
+          if (token) {
+            console.log("Token:", token);
+            tokenFormContainer.style.display = "none";
+            loading.style.display = "flex";
+            const devToken = token;
+
+            // Call the logic to handle the connection using devToken
+            handleConnectionWithRetries(devToken, 10, 1000);
+          } else {
+            console.log("Token not found in the URL");
+          }
+        }
+        // Call the function when the DOM is ready
+        extractTokenFromURL();
+      });
+    </script>
+  </body>
+</html>
