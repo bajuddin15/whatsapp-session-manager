@@ -4,7 +4,7 @@
   "description": "server of whatsapp web connection app",
   "main": "index.js",
   "engines": {
-    "node": "14.x"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "nodemon index.js",
